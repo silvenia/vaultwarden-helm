@@ -91,11 +91,17 @@ sidecars: []
 
 ## @param extraVolumes Optionally specify extra list of additional volumes
 ##
-extraVolumes: []
+extraVolumes:
+  - name: db-secret-vol
+    secret:
+      secretName: db-creds
 
 ## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts
 ##
-extraVolumeMounts: []
+extraVolumeMounts:
+  - name: db-secret-vol
+    mountPath: "/etc/db-creds"
+    readOnly: true
 
 ## @param nodeSelector Node labels for pod assignment
 ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector

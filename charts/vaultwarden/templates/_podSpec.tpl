@@ -71,7 +71,7 @@ containers:
           secretKeyRef:
             name: {{ default (include "vaultwarden.fullname" .) .Values.duo.existingSecret }}
             key: {{ default "DUO_SKEY" .Values.duo.sKey.existingSecretKey }}
-      {{- end }}  
+      {{- end }}
       {{- if or (.Values.smtp.username.value) (.Values.smtp.username.existingSecretKey )}}
       - name: SMTP_USERNAME
         valueFrom:
@@ -165,6 +165,14 @@ containers:
       - name: vaultwarden-data
         mountPath: {{ default "/data/attachments" .attachmentsPath }}
     {{- end }}
+      {{- with .Values.storage.data }}
+      - name: {{ .name }}
+        mountPath: {{ default "/data" .path }}
+      {{- end }}
+      {{- with .Values.storage.attachments }}
+      - name: {{ .name }}
+        mountPath: {{ default "/data/attachments" .path }}
+      {{- end }}
     {{- else }}
     {{- if or (.Values.storage.data) (.Values.storage.attachments) }}
     volumeMounts:
@@ -229,6 +237,15 @@ volumes:
   - name: vaultwarden-data
     persistentVolumeClaim:
       claimName: {{ .claimName }}
+{{- end }}
+{{- if eq (include "vaultwarden.resourceType" .) "Deployment" }}
+{{- range $pvc := (fromYaml (include "vaultwarden.pvcSpec" .)).volumeClaimTemplates }}
+{{- $newName := printf "%s-%s-0" $pvc.metadata.name $.Release.Name }}
+  - name: {{ $pvc.metadata.name }}
+    persistentVolumeClaim:
+      claimName: {{ $newName }}
+{{- end }}
+
 {{- end }}
 {{- end }}
 {{- if .Values.serviceAccount.create }}
